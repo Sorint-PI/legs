@@ -1,6 +1,6 @@
 # podman build image
-# podman up (does it change the image?)
-#
+# podman up (TODO check whether podman up updates the image)
+
 echo "Running podman-compose down"
 podman-compose down
 
