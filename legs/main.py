@@ -159,14 +159,13 @@ def main():
 
     if config.INTERCEPT_TO_STDOUT_DEBUG_MODE:
       show_only_passwords_debug_mode()
-
-    if config.INTERFACE_NAME:
-      try_ldap_bind()
-      start_async_interception(queue_passwords_to_update,ldap_destination_connection, config.INTERFACE_NAME,
-                               destination_ldap_server_users_dn_prefix=config.LDAP_DESTINATION_BASE_DN_PREFIX,
-                               destination_ldap_server_users_dn_suffix=config.LDAP_DESTINATION_BASE_DN
-                               )
-
+    else:
+      if config.INTERFACE_NAME:
+        try_ldap_bind()
+        start_async_interception(queue_passwords_to_update,ldap_destination_connection, config.INTERFACE_NAME,
+                                 destination_ldap_server_users_dn_prefix=config.LDAP_DESTINATION_BASE_DN_PREFIX,
+                                 destination_ldap_server_users_dn_suffix=config.LDAP_DESTINATION_BASE_DN
+                                 )
     show_help()
 
 if __name__ == "__main__":
