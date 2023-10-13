@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  integration-tests-freeipa-server-container:
+    hostname: ipa.example.test
+    ports:
+      - "4389:389"
+      - "4443:443"
+      - "8000:5000"
+    volumes:
+      - ./ipa-data:/data:Z
+    environment:
+      TEST_DEBUG: "true"
+    image: "docker.io/freeipa/freeipa-server:almalinux-9-4.10.0"
+    read_only: true
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+  integration-tests-openldap-server-container:
+    ports:
+      - "5389:389"
+      - "5636:636"
+    volumes:
+      - ./openldap-data/ldap:/var/lib/ldap
+      - ./openldap-data/slapd.d:/etc/ldap/slapd.d
+    image: "docker.io/osixia/openldap:1.5.0"
+  integration-tests-keycloak-server-container:
+    environment:
+      KEYCLOAK_ADMIN: "admin"
+      KEYCLOAK_ADMIN_PASSWORD: "admin"
+    ports:
+      - "8080:8080"
+    image: "quay.io/keycloak/keycloak:21.1.1"
+    command: start-dev
+  integration-tests-netshoot:
+    image: "docker.io/nicolaka/netshoot:latest"
+      #command: pause 10000000
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
