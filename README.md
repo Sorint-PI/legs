@@ -1,3 +1,4 @@
-# ldap-sync-freeipa-openldap
+# LEGS "LDAP Extended Giga Sync"
 
-Script per il sync da FreeIPA a OpenLDAP
+Sync LDAP passwords across different Identity Providers by intercepting password modify operations.
+
