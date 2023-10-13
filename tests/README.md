@@ -6,11 +6,30 @@ python -m venv venv
 ```
 Install the needed requirements in the venv as per the installation guide:
 ```
-pip install -r requirements-dev.txt
+venv/bin/pip install -r requirements-dev.txt
 ```
 Enter the tests directory and launch the default compose (currently only works with podman due to difficulties running FreeIPA in Docker):
 ```
 cd tests
 ./rebuild-and-restart-tests.sh
 ```
-
+Get the network namespace currently used by podman:
+```
+ps aux | grep -i netns
+```
+You should receive an output containing a process similar to this:
+```
+/usr/bin/slirp4netns --disable-host-loopback --mtu=65520 --enable-sandbox --enable-seccomp --enable-ipv6 -c -r 3 --netns-type=path /run/user/1000/netns/rootless-netns-de4da728901569ceabc9 tap0
+```
+In this case, the network namespace is the following:
+```
+/run/user/1000/netns/rootless-netns-de4da728901569ceabc9
+```
+Run tests with pytest using the found network namespace:
+```
+podman unshare nsenter --net=/run/user/1000/netns/rootless-netns-de4da728901569ceabc9 pytest
+```
+Shut down the testing environment:
+```
+podman-compose down
+```
