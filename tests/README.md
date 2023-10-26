@@ -48,3 +48,11 @@ Shut down the testing environment:
 ```
 podman-compose down
 ```
+
+## Accessing FreeIPA WebUI:
+To access the FreeIPA WebUI while avoiding running podman as root, we must manually redirect connections from port 443 to port 4443.
+Run this command:
+```
+sudo socat TCP-LISTEN:443,fork TCP:127.0.0.1:4443
+```
+And access the WebUI at https://ipa.example.test/ipa/ui/
