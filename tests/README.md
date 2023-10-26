@@ -13,8 +13,7 @@ venv/bin/pip install -r requirements.txt
 ```
 Enter the tests directory and launch the default compose (currently only works with podman due to difficulties running FreeIPA in Docker):
 ```
-cd tests
-./rebuild-and-restart-tests.sh
+cd tests && ./rebuild-and-restart-tests.sh
 ```
 Go back to the root of the project:
 ```
