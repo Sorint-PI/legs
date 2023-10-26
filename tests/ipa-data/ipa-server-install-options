@@ -1,0 +1,6 @@
+--realm=EXAMPLE.TEST
+--ds-password=directorymanager
+--admin-password=directorymanager
+--hostname=ipa.example.test
+--domain==example.test
+--netbios-name=EXAMPLE
