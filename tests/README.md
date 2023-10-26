@@ -20,7 +20,7 @@ Go back to the root of the project:
 ```
 cd ..
 ```
-Copy the default tests configuration, remember to change INTERFACE_NAME to your *podman* network interface:
+Copy the default tests configuration, if needed change INTERFACE_NAME to your **podman container** network interface:
 ```
 cp config-template-for-tests.py legs/config.py
 ```
