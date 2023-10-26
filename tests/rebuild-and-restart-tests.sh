@@ -28,7 +28,10 @@ do
 done
 
 
-echo "Running seeding process"
+echo "Running seeding process on FreeIPA"
 ../venv/bin/python seed.py
 podman exec -it tests_integration-tests-freeipa-server-container_1 bash -c "echo 'directorymanager' | kinit admin"
 podman exec -it tests_integration-tests-freeipa-server-container_1 ipa user-add testuser1 --first=Test --last=User
+
+echo "Running seeding process on OpenLDAP"
+ldapmodify -a -x -D "cn=admin,dc=example,dc=org" -w admin -H ldap://localhost:5389 -f openldap-seeding.ldif
