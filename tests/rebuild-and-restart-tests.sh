@@ -30,3 +30,5 @@ done
 
 echo "Running seeding process"
 ../venv/bin/python seed.py
+podman exec -it tests_integration-tests-freeipa-server-container_1 bash -c "echo 'directorymanager' | kinit username"
+podman exec -it tests_integration-tests-freeipa-server-container_1 ipa user-add testuser1 --first=Test --last=User
