@@ -24,6 +24,11 @@ Copy the default tests configuration, if needed change INTERFACE_NAME to your **
 ```
 cp config-template-for-tests.py legs/config.py
 ```
+Add the development FreeIPA's hostname to [your hosts file](https://en.wikipedia.org/wiki/Hosts_(file)) pointing at localhost.
+On Linux, /etc/hosts should contain:
+```
+127.0.0.1 ipa.example.test
+```
 Get the network namespace currently used by podman:
 ```
 ps aux | grep -i netns
