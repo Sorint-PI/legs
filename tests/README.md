@@ -4,14 +4,25 @@ Create a venv environment in the root of the project (it MUST be in the upmost d
 ```
 python -m venv venv
 ```
-Install the needed requirements in the venv as per the installation guide:
+Install the development requirements in the venv as well as the normal requirements:
 ```
 venv/bin/pip install -r requirements-dev.txt
+```
+```
+venv/bin/pip install -r requirements.txt
 ```
 Enter the tests directory and launch the default compose (currently only works with podman due to difficulties running FreeIPA in Docker):
 ```
 cd tests
 ./rebuild-and-restart-tests.sh
+```
+Go back to the root of the project:
+```
+cd ..
+```
+Copy the default tests configuration, remember to change INTERFACE_NAME to your *podman* network interface:
+```
+cp config-template-for-tests.py legs/config.py
 ```
 Get the network namespace currently used by podman:
 ```
@@ -27,7 +38,7 @@ In this case, the network namespace is the following:
 ```
 Run tests with pytest using the found network namespace:
 ```
-podman unshare nsenter --net=/run/user/1000/netns/rootless-netns-de4da728901569ceabc9 pytest
+podman unshare nsenter --net=/run/user/1000/netns/rootless-netns-de4da728901569ceabc9 venv/bin/pytest
 ```
 Shut down the testing environment:
 ```
