@@ -23,11 +23,6 @@ Copy the default tests configuration, if needed change INTERFACE_NAME to your **
 ```
 cp config-template-for-tests.py legs/config.py
 ```
-Add the development FreeIPA's hostname to [your hosts file](https://en.wikipedia.org/wiki/Hosts_(file)) pointing at localhost.
-On Linux, /etc/hosts should contain:
-```
-127.0.0.1 ipa.example.test
-```
 Get the network namespace currently used by podman:
 ```
 ps aux | grep -i netns
@@ -55,4 +50,14 @@ Run this command:
 ```
 sudo socat TCP-LISTEN:443,fork TCP:127.0.0.1:4443
 ```
-And access the WebUI at https://ipa.example.test/ipa/ui/
+
+Also add the development FreeIPA's hostname to [your hosts file](https://en.wikipedia.org/wiki/Hosts_(file)) pointing at localhost.
+On Linux, /etc/hosts should contain:
+```
+127.0.0.1 ipa.example.test
+```
+
+Now you can access the WebUI at https://ipa.example.test/ipa/ui/
+
+**WARNING!**
+Remember to remove the fake hostname from your hosts file, otherwise when running tests from a completely clean environment FreeIPA will complain that its domain is pointing at localhost inside the container.
