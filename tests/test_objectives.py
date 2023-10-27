@@ -58,7 +58,7 @@ def tests_working():
 
 def test_from_pcap_file():
 
-    scapy_cap = rdpcap('tests/fixtures/test_ass_keycloak_normale.pcap')
+    scapy_cap = rdpcap('tests/fixtures/test_password_reset_keycloak_capture.pcap')
     packets = []
     for packet in scapy_cap:
       packets.append(packet)
@@ -70,7 +70,7 @@ def test_from_pcap_file():
 
     passwords = ldap_utils.extract_passwords_from_packets(packets)
 
-    myPassAsString = "PQLWEJPVJASPDLJPALJSD"
+    myPassAsString = "PzAvSbJ$Dn'z'yLP'$Aq#t#Wy#uJ\"EQ"
     myPassAsIntegers = []
     for char in myPassAsString.encode('utf-8'):
       myPassAsIntegers.append(char)
