@@ -17,16 +17,29 @@ import threading
 
 import pytest
 import time
+import pickle
 
-
-# Test these passwords:
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 config = {}
 
 ldap_destination_server = main.ldap_destination_server
 ldap_destination_connection = main.ldap_destination_connection
 
+
+
+test_passwords = [
+        "test1234ABCD"
+        "1",
+        "2",
+        "3",
+        "4",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+        ]
+
+
+@pytest.fixture(params=test_passwords)
+def test_password(request):
+    return str(request.param)
 
 @pytest.fixture
 def source_ldap_server():
@@ -49,7 +62,7 @@ def destination_ldap_server():
 def destination_ldap_server_connection(destination_ldap_server):
     server_bind_dn = 'cn=admin,dc=example,dc=org'
     server_bind_password = 'admin'
-    ldap_destination_connection = ldap3.Connection(ldap_destination_server, server_bind_dn, server_bind_password, auto_bind=True)
+    ldap_destination_connection = ldap3.Connection(destination_ldap_server, server_bind_dn, server_bind_password, auto_bind=True)
     return ldap_destination_connection
 
 
@@ -75,9 +88,23 @@ def test_from_pcap_file():
     for char in myPassAsString.encode('utf-8'):
       myPassAsIntegers.append(char)
 
-
     assert ldap_utils.contains(myPassAsIntegers,passwords[0])
 
+def test_from_pickle_file():
+
+    packets = []
+    with open('tests/fixtures/packet-test-pickle.pkl', 'rb') as pickle_file:
+        packet = pickle.load(pickle_file)
+        packets.append(packet)
+
+    passwords = ldap_utils.extract_passwords_from_packets(packets)
+
+    testpassword = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    myPassAsIntegers = []
+    for char in testpassword.encode('utf-8'):
+      myPassAsIntegers.append(char)
+
+    assert ldap_utils.contains(myPassAsIntegers,passwords[0])
 
 # Dato un interceptor, ed una richiesta di modifica password, printa la password e l'utente della richiesta a schermo
 # nome alternativo: test_check_if_password_is_decoded_correctly
@@ -117,15 +144,10 @@ def test_intercept_user_uid():
 
     assert testuser == decoded_found_uid
 
-def test_ldap_write_password_for_user():
-    global ldap_destination_server
-    global ldap_destination_connection
+def test_ldap_write_password_for_user(destination_ldap_server, destination_ldap_server_connection):
     server_bind_dn = 'cn=admin,dc=example,dc=org'
     server_users_bind_dn = 'ou=people,dc=example,dc=org'
     server_bind_password = 'admin'
-
-    ldap_destination_server = ldap3.Server('ldap://localhost:5389', use_ssl=False, get_info=ldap3.ALL)
-    ldap_destination_connection = ldap3.Connection(ldap_destination_server, server_bind_dn, server_bind_password, auto_bind=True)
 
     testpassword = "wariooooo"
     test_second_password = "waaaaluiiiigiiii"
@@ -135,22 +157,22 @@ def test_ldap_write_password_for_user():
     testuser_dn = "uid="+testuser+","+server_users_bind_dn
 
     # write the given password
-    main.write_ldap_password_for_user(ldap_destination_connection,testuser_dn,testpassword)
+    main.write_ldap_password_for_user(destination_ldap_server_connection,testuser_dn,testpassword)
     # bind to test wether the password actually works from LDAP
-    conn = ldap3.Connection(ldap_destination_server,testuser_dn,testpassword)
+    conn = ldap3.Connection(destination_ldap_server,testuser_dn,testpassword)
     if conn.bind():
       first_bind_successful = True
 
     # re-write the given password to test wether it actually changes
-    main.write_ldap_password_for_user(ldap_destination_connection,testuser_dn,test_second_password)
+    main.write_ldap_password_for_user(destination_ldap_server_connection,testuser_dn,test_second_password)
     # re-bind to test wether the password actually works from LDAP
-    conn_second = ldap3.Connection(ldap_destination_server,testuser_dn,test_second_password)
+    conn_second = ldap3.Connection(destination_ldap_server,testuser_dn,test_second_password)
     if conn_second.bind():
       second_bind_successful = True
 
     assert first_bind_successful and second_bind_successful
 
-def test_async_password_intercepting_and_writing(source_ldap_server, source_ldap_server_connection, destination_ldap_server, destination_ldap_server_connection):
+def test_async_password_intercepting_and_writing(source_ldap_server, source_ldap_server_connection, destination_ldap_server, destination_ldap_server_connection,test_password):
     testuser = 'testuser1'
     keycloak_realm = 'testing'
     source_server_users_bind_dn = 'cn=users,cn=accounts,dc=example,dc=test'
@@ -160,10 +182,11 @@ def test_async_password_intercepting_and_writing(source_ldap_server, source_ldap
     destination_server_testuser_dn = "uid="+testuser+destination_server_users_bind_dn
     interface_name = "veth2"
 
-    first_test_password = "PLJASDPLJ"
+    first_test_password = test_password
     second_test_password = "CCCCCCCCCCCCCC"
 
     queue_passwords_to_update = Queue(maxsize=1000)
+
 
 
     stop_flag = [False]
@@ -179,7 +202,6 @@ def test_async_password_intercepting_and_writing(source_ldap_server, source_ldap
                                                          }
                                                  )
     password_intercept_thread.start()
-    time.sleep(5)
 
     first_bind_on_source_successful = False
     first_bind_on_destination_succesful = False
@@ -187,7 +209,6 @@ def test_async_password_intercepting_and_writing(source_ldap_server, source_ldap
     second_bind_on_destination_succesful = False
 
     keycloak_reset_password_for_user(testuser,first_test_password,keycloak_realm)
-    time.sleep(5)
 
     # Test the bind on the source LDAP server
     conn = ldap3.Connection(source_ldap_server,source_server_testuser_dn,first_test_password)
@@ -198,9 +219,7 @@ def test_async_password_intercepting_and_writing(source_ldap_server, source_ldap
     if conn.bind():
       first_bind_on_destination_succesful = True
 
-
     keycloak_reset_password_for_user(testuser,second_test_password,keycloak_realm)
-    time.sleep(5)
 
     # Test the bind on the source LDAP server
     conn = ldap3.Connection(source_ldap_server,source_server_testuser_dn,second_test_password)
@@ -216,6 +235,9 @@ def test_async_password_intercepting_and_writing(source_ldap_server, source_ldap
     password_intercept_thread.join()
 
 
-    assert first_bind_on_source_successful and first_bind_on_destination_succesful and second_bind_on_source_successful and second_bind_on_destination_succesful
+    assert first_bind_on_source_successful
+    assert first_bind_on_destination_succesful
+    assert second_bind_on_source_successful
+    assert second_bind_on_destination_succesful
 
 
