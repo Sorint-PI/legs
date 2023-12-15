@@ -1,2 +1,3 @@
 scapy
 ldap3
+pyasn1
