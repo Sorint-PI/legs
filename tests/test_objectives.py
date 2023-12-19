@@ -22,10 +22,6 @@ import pickle
 
 config = {}
 
-ldap_destination_server = main.ldap_destination_server
-ldap_destination_connection = main.ldap_destination_connection
-
-
 
 test_passwords = [
         "test1234ABCD"
@@ -69,9 +65,17 @@ def destination_ldap_server_connection(destination_ldap_server):
 def tests_working():
     assert True == True
 
-def test_ldap_server_bind():
-    a,b = None, None
-    main.try_ldap_bind(a,b)
+def test_ldap_source_server_bind():
+    # TODO
+    #ldap_source_server, ldap_source_connection = main.establish_ldap_source_server_connection()
+    #assert ldap_source_server
+    #assert ldap_source_connection
+    pass
+
+def test_ldap_destination_server_bind():
+    ldap_destination_server,ldap_destination_connection = main.establish_ldap_destination_server_connection()
+    assert ldap_destination_server
+    assert ldap_destination_connection
 
 def test_from_pcap_file():
 
@@ -244,4 +248,62 @@ def test_async_password_intercepting_and_writing(source_ldap_server, source_ldap
     assert second_bind_on_source_successful
     assert second_bind_on_destination_succesful
 
+
+def test_main(source_ldap_server, source_ldap_server_connection, destination_ldap_server, destination_ldap_server_connection,test_password):
+    first_bind_on_source_successful = False
+    first_bind_on_destination_succesful = False
+    second_bind_on_source_successful = False
+    second_bind_on_destination_succesful = False
+
+    testuser = 'testuser1'
+    keycloak_realm = 'testing'
+    interface_name = "veth2"
+
+    source_server_users_bind_dn = 'cn=users,cn=accounts,dc=example,dc=test'
+    source_server_testuser_dn = "uid="+testuser+","+source_server_users_bind_dn
+    destination_server_users_bind_dn = ',ou=people,dc=example,dc=org'
+    destination_server_testuser_dn = "uid="+testuser+destination_server_users_bind_dn
+    first_test_password = test_password
+    second_test_password = "CCCCCCCCCCCCCC"
+
+
+    stop_flag = [False]
+    intercepting_thread = threading.Thread(target=main.main, args=(), kwargs={"stop_flag":stop_flag})
+    intercepting_thread.start()
+    #main.main()
+
+    if not intercepting_thread.is_alive():
+        raise Exception("Thread not running")
+
+
+    keycloak_reset_password_for_user(testuser,first_test_password,keycloak_realm)
+
+    # Test the bind on the source LDAP server
+    conn = ldap3.Connection(source_ldap_server,source_server_testuser_dn,first_test_password)
+    if conn.bind():
+      first_bind_on_source_successful = True
+    # Test the bind on the destination LDAP server
+    conn = ldap3.Connection(destination_ldap_server,destination_server_testuser_dn,first_test_password)
+    if conn.bind():
+      first_bind_on_destination_succesful = True
+
+    keycloak_reset_password_for_user(testuser,second_test_password,keycloak_realm)
+
+    # Test the bind on the source LDAP server
+    conn = ldap3.Connection(source_ldap_server,source_server_testuser_dn,second_test_password)
+    if conn.bind():
+      second_bind_on_source_successful = True
+    # Test the bind on the destination LDAP server
+    conn = ldap3.Connection(destination_ldap_server,destination_server_testuser_dn,second_test_password)
+    if conn.bind():
+      second_bind_on_destination_succesful = True
+
+
+    stop_flag[0] = True
+    print("Joining thread")
+
+    assert first_bind_on_source_successful
+    assert first_bind_on_destination_succesful
+    assert second_bind_on_source_successful
+    assert second_bind_on_destination_succesful
 

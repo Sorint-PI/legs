@@ -27,23 +27,26 @@ logging.basicConfig(
         )
 
 
-queue_passwords_to_update = None
+def establish_ldap_source_server_connection():
+    # TODO
+    pass
 
+def establish_ldap_destination_server_connection():
+    return establish_ldap_server_connection(config.LDAP_DESTINATION_SERVER_HOST,config.LDAP_DESTINATION_SERVER_LOGIN_DN,config.LDAP_DESTINATION_SERVER_LOGIN_PASS)
 
-ldap_destination_server = None
-ldap_destination_connection = None
-def try_ldap_bind(ldap_server,ldap_connection):
+def establish_ldap_server_connection(ldap_server_host,login_dn,login_dn_password):
     """
-    Tests wether or not binding/logging into the LDAP server works
+    Tests wether or not binding/logging into the given LDAP server works
     Returns an exception if not possible
     """
-    ldap_server = ldap3.Server(config.LDAP_DESTINATION_SERVER_HOST, get_info=ldap3.ALL)
-    ldap_connection = ldap3.Connection(ldap_server, config.LDAP_DESTINATION_SERVER_LOGIN_DN, config.LDAP_DESTINATION_SERVER_LOGIN_PASS, auto_bind=True)
+    ldap_server = ldap3.Server(ldap_server_host, get_info=ldap3.ALL)
+    ldap_connection = ldap3.Connection(ldap_server, login_dn, login_dn_password, auto_bind=True)
     ldap_connection.bind()
     if not ldap_connection.bound :
-        error_string = "Cannot establish connection to the destination LDAP server"
+        error_string = "Cannot establish connection to the LDAP server at host"+str(ldap_server)
         logging.fatal(error_string)
         raise ConnectionError(error_string)
+    return ldap_server,ldap_connection
 
 def create_async_sniffer(function_to_parse_packets_with, interface, *args, **kwargs):
 
@@ -90,6 +93,7 @@ def start_async_interception(queue_passwords_to_update, ldap_destination_connect
         if stopping[0]:
           break
       except Empty:
+        # TODO improve exception handling
         logging.debug(traceback.format_exc())
 
 def get_user_and_password_from_ldap_packet(packet):
@@ -113,7 +117,7 @@ def get_user_and_password_from_ldap_packet(packet):
 def show_password_and_user_from_ldap_packet(packet):
     user, password = get_user_and_password_from_ldap_packet(packet)
     if user != None and password != None:
-      print("Read password: '" + password + "' for user '"+user+"'")
+      logging.debug("Read password: '" + password + "' for user '"+user+"'")
 
 
 def wrapper_add_password_and_user_to_global_queue_from_ldap_packet(queue_passwords_to_update):
@@ -149,9 +153,11 @@ def show_help():
     """
     print(help_string)
 
-def main():
-    global queue_passwords_to_update
-    global ldap_destination_connection
+def main(*args, **kwargs):
+
+
+    stop_flag = kwargs.get('stop_flag', [False])
+
     queue_passwords_to_update = Queue(maxsize=1000)
 
     # TODO
@@ -164,10 +170,13 @@ def main():
       show_only_passwords_debug_mode()
     else:
       if config.INTERFACE_NAME:
-        try_ldap_bind()
+        # TODO ldap_source_server, ldap_source_connection = establish_ldap_source_server_connection()
+        ldap_destination_server,ldap_destination_connection = establish_ldap_destination_server_connection()
+
         start_async_interception(queue_passwords_to_update,ldap_destination_connection, config.INTERFACE_NAME,
                                  destination_ldap_server_users_dn_prefix=config.LDAP_DESTINATION_BASE_DN_PREFIX,
-                                 destination_ldap_server_users_dn_suffix=config.LDAP_DESTINATION_BASE_DN
+                                 destination_ldap_server_users_dn_suffix=config.LDAP_DESTINATION_BASE_DN,
+                                 stop_flag=stop_flag
                                  )
     show_help()
 

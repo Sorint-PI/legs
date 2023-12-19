@@ -11,7 +11,7 @@ DRY_RUN = True
 # INTERCEPT_TO_STDOUT_DEBUG_MODE
 # The program will ONLY intercept passwords and write them to stdout, no other actions will be taken.
 # Passwords will NOT be logged to disk.
-INTERCEPT_TO_STDOUT_DEBUG_MODE = True
+INTERCEPT_TO_STDOUT_DEBUG_MODE = False
 # INTERFACE_NAME
 # The interface the program will listen on.
 INTERFACE_NAME = "veth2"
@@ -50,7 +50,7 @@ LDAP_DESTINATION_SERVER_LOGIN_PASS="admin"
 # LDAP users DN prefix
 LDAP_DESTINATION_BASE_DN_PREFIX = 'uid='
 # LDAP users base DN
-LDAP_DESTINATION_BASE_DN = 'cn=users,cn=accounts,dc=example,dc=test'
+LDAP_DESTINATION_BASE_DN = ',ou=people,dc=example,dc=org'
 # LDAP search filter. The last replace will remove newlines.
 LDAP_DESTINATION_SEARCH_FILTER="""
 (|(memberOf=cn=group-1,ou=Groups,o=organizazion,dc=company,dc=it)
