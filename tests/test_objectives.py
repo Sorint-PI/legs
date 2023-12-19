@@ -69,6 +69,10 @@ def destination_ldap_server_connection(destination_ldap_server):
 def tests_working():
     assert True == True
 
+def test_ldap_server_bind():
+    a,b = None, None
+    main.try_ldap_bind(a,b)
+
 def test_from_pcap_file():
 
     scapy_cap = rdpcap('tests/fixtures/test_password_reset_keycloak_capture.pcap')

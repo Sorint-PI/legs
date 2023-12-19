@@ -32,15 +32,18 @@ queue_passwords_to_update = None
 
 ldap_destination_server = None
 ldap_destination_connection = None
-def try_ldap_bind():
+def try_ldap_bind(ldap_server,ldap_connection):
     """
     Tests wether or not binding/logging into the LDAP server works
     Returns an exception if not possible
     """
-    global ldap_destination_server
-    global ldap_destination_connection
-    ldap_destination_server = ldap3.Server(config.LDAP_DESTINATION_SERVER_HOST, get_info=ldap3.ALL)
-    ldap_destination_connection = ldap3.Connection(ldap_destination_server, config.LDAP_DESTINATION_SERVER_LOGIN_DN, config.LDAP_DESTINATION_SERVER_LOGIN_PASS, auto_bind=True)
+    ldap_server = ldap3.Server(config.LDAP_DESTINATION_SERVER_HOST, get_info=ldap3.ALL)
+    ldap_connection = ldap3.Connection(ldap_server, config.LDAP_DESTINATION_SERVER_LOGIN_DN, config.LDAP_DESTINATION_SERVER_LOGIN_PASS, auto_bind=True)
+    ldap_connection.bind()
+    if not ldap_connection.bound :
+        error_string = "Cannot establish connection to the destination LDAP server"
+        logging.fatal(error_string)
+        raise ConnectionError(error_string)
 
 def create_async_sniffer(function_to_parse_packets_with, interface, *args, **kwargs):
 
