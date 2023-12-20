@@ -301,6 +301,7 @@ def test_main(source_ldap_server, source_ldap_server_connection, destination_lda
 
     stop_flag[0] = True
     print("Joining thread")
+    intercepting_thread.join()
 
     assert first_bind_on_source_successful
     assert first_bind_on_destination_succesful
