@@ -40,6 +40,9 @@ def establish_ldap_server_connection(ldap_server_host,login_dn,login_dn_password
     Returns an exception if not possible
     """
     ldap_server = ldap3.Server(ldap_server_host, get_info=ldap3.ALL)
+    # This "Placeholder" non used connection named "fast" is needed to drastically increase first-time bind speed
+    # Running it before our actual connection speeds things up by many seconds
+    ldap_connection_fast = ldap3.Connection(ldap_server, login_dn, login_dn_password, auto_bind=True)
     ldap_connection = ldap3.Connection(ldap_server, login_dn, login_dn_password, auto_bind=True, client_strategy=ldap3.RESTARTABLE)
     ldap_connection.bind()
     if not ldap_connection.bound :
