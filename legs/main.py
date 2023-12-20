@@ -40,7 +40,7 @@ def establish_ldap_server_connection(ldap_server_host,login_dn,login_dn_password
     Returns an exception if not possible
     """
     ldap_server = ldap3.Server(ldap_server_host, get_info=ldap3.ALL)
-    ldap_connection = ldap3.Connection(ldap_server, login_dn, login_dn_password, auto_bind=True)
+    ldap_connection = ldap3.Connection(ldap_server, login_dn, login_dn_password, auto_bind=True, client_strategy=ldap3.RESTARTABLE)
     ldap_connection.bind()
     if not ldap_connection.bound :
         error_string = "Cannot establish connection to the LDAP server at host"+str(ldap_server)
