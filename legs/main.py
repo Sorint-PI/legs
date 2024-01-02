@@ -92,6 +92,10 @@ def create_async_sniffer(function_to_parse_packets_with, interface, *args, **kwa
         return sniffer
 
 
+def check_bind_on_server(connection, user_dn, password):
+    return True
+
+
 def write_ldap_password_for_user(connection, user_dn, password):
     # create modification
     # write to user
@@ -153,14 +157,34 @@ def start_async_interception(
             user, password = queue_passwords_to_update.get(timeout=5)
             # user,password = queue_passwords_to_update.get(block=True)
             if user != None and password != None:
-                user_dn = (
+                destination_user_dn = (
                     destination_ldap_server_users_dn_prefix
                     + user
                     + destination_ldap_server_users_dn_suffix
                 )
-                write_ldap_password_for_user(
-                    ldap_destination_connection, user_dn, password
+                source_user_dn = (
+                    source_ldap_server_users_dn_prefix
+                    + user
+                    + source_ldap_server_users_dn_suffix
                 )
+                try:
+                    logging.info("Found password change for user: '" + user + "'")
+                    if not check_bind_on_server(
+                        ldap_source_server, source_user_dn, password
+                    ):
+                        raise Exception("Cannot bind on source server")
+                    write_ldap_password_for_user(
+                        ldap_destination_connection, destination_user_dn, password
+                    )
+                    if not check_bind_on_server(
+                        ldap_destination_server, destination_user_dn, password
+                    ):
+                        raise Exception("Cannot bind on destination server")
+                except Exception as error:
+                    logging.error(traceback.format_exc())
+                    logging.error(
+                        "Couldn't update user password, reason is: " + str(error)
+                    )
             if stopping[0]:
                 break
         except Empty:
