@@ -238,6 +238,9 @@ def test_async_password_intercepting_and_writing(
         target=main.start_async_interception,
         args=(
             queue_passwords_to_update,
+            source_ldap_server,
+            source_ldap_server_connection,
+            destination_ldap_server,
             destination_ldap_server_connection,
             interface_name,
         ),
@@ -245,6 +248,8 @@ def test_async_password_intercepting_and_writing(
             "stop_flag": stop_flag,
             "destination_ldap_server_users_dn_prefix": "uid=",
             "destination_ldap_server_users_dn_suffix": destination_server_users_bind_dn,
+            "source_ldap_server_users_dn_prefix": "uid=",
+            "source_ldap_server_users_dn_suffix": source_server_users_bind_dn,
         },
     )
     password_intercept_thread.start()
@@ -323,10 +328,15 @@ def test_main(
         target=main.main, args=(), kwargs={"stop_flag": stop_flag}
     )
     intercepting_thread.start()
+    if not intercepting_thread.is_alive():
+        raise Exception("Thread not started")
     # main.main()
 
     if not intercepting_thread.is_alive():
         raise Exception("Thread not running")
+
+    # TODO fix race condition between the interception thread fully starting vs launching a reset
+    time.sleep(1)
 
     keycloak_reset_password_for_user(testuser, first_test_password, keycloak_realm)
 

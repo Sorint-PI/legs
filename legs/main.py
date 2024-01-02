@@ -28,8 +28,11 @@ logging.basicConfig(
 
 
 def establish_ldap_source_server_connection():
-    # TODO
-    pass
+    return establish_ldap_server_connection(
+        config.LDAP_SOURCE_SERVER_HOST,
+        config.LDAP_SOURCE_SERVER_LOGIN_DN,
+        config.LDAP_SOURCE_SERVER_LOGIN_PASS,
+    )
 
 
 def establish_ldap_destination_server_connection():
@@ -92,6 +95,11 @@ def create_async_sniffer(function_to_parse_packets_with, interface, *args, **kwa
 def write_ldap_password_for_user(connection, user_dn, password):
     # create modification
     # write to user
+    logging.info(
+        "Updating password for user: '"
+        + user_dn
+        + "'"
+    )
     logging.debug(
         "Updating password for user: '"
         + user_dn
@@ -109,7 +117,7 @@ def write_ldap_password_for_user(connection, user_dn, password):
 
 
 def start_async_interception(
-    queue_passwords_to_update, ldap_destination_connection, interface, *args, **kwargs
+    queue_passwords_to_update, ldap_source_server, ldap_source_connection, ldap_destination_server, ldap_destination_connection, interface, *args, **kwargs
 ):
     # TODO What if we receive too many packets to handle?
     # The best thing would be to save all the packets in an array and, if we start consuming more than a limited amount of memory, we start throwing errors and discarding packets.
@@ -121,6 +129,12 @@ def start_async_interception(
     )
     destination_ldap_server_users_dn_suffix = kwargs.get(
         "destination_ldap_server_users_dn_suffix", False
+    )
+    source_ldap_server_users_dn_prefix = kwargs.get(
+        "source_ldap_server_users_dn_prefix", False
+    )
+    source_ldap_server_users_dn_suffix = kwargs.get(
+        "source_ldap_server_users_dn_suffix", False
     )
 
     # packet_sniffer = create_async_sniffer(add_password_and_user_to_global_queue_from_ldap_packet,queue_passwords_to_update=queue_passwords_to_update)
@@ -229,7 +243,7 @@ def main(*args, **kwargs):
         show_only_passwords_debug_mode()
     else:
         if config.INTERFACE_NAME:
-            # TODO ldap_source_server, ldap_source_connection = establish_ldap_source_server_connection()
+            ldap_source_server, ldap_source_connection = establish_ldap_source_server_connection()
             (
                 ldap_destination_server,
                 ldap_destination_connection,
@@ -237,8 +251,13 @@ def main(*args, **kwargs):
 
             start_async_interception(
                 queue_passwords_to_update,
+                ldap_source_server,
+                ldap_source_connection,
+                ldap_destination_server,
                 ldap_destination_connection,
                 config.INTERFACE_NAME,
+                source_ldap_server_users_dn_prefix=config.LDAP_SOURCE_BASE_DN_PREFIX,
+                source_ldap_server_users_dn_suffix=config.LDAP_SOURCE_BASE_DN,
                 destination_ldap_server_users_dn_prefix=config.LDAP_DESTINATION_BASE_DN_PREFIX,
                 destination_ldap_server_users_dn_suffix=config.LDAP_DESTINATION_BASE_DN,
                 stop_flag=stop_flag,
