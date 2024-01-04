@@ -1,0 +1,15 @@
+[Unit]
+Description=LEGS, Sync LDAP passwords https://github.com/Sorint-PI/legs
+After=network.target remote-fs.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/legs/
+ExecStart=/opt/legs/virtualenv/bin/python /opt/legs/legs/main.py
+Restart=always
+RestartSec=20
+
+[Install]
+WantedBy=multi-user.target
