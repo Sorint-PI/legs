@@ -92,8 +92,32 @@ def create_async_sniffer(function_to_parse_packets_with, interface, *args, **kwa
         return sniffer
 
 
-def check_bind_on_server(connection, user_dn, password):
-    return True
+def check_bind_on_server(already_connected_server, user_dn, password):
+    host = (
+        "ldap://"
+        + already_connected_server.host
+        + ":"
+        + str(already_connected_server.port)
+    )
+    try:
+        (
+            established_ldap_server,
+            established_ldap_connection,
+        ) = establish_ldap_server_connection(host, user_dn, password)
+        return True
+
+    except Exception as error:
+        logging.error(traceback.format_exc())
+        logging.error(
+            "Couldn't verify password for user '"
+            + user_dn
+            + "'"
+            + " on server '"
+            + host
+            + "', reason is "
+            + str(error)
+        )
+        return False
 
 
 def write_ldap_password_for_user(connection, user_dn, password):

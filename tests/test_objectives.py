@@ -249,7 +249,7 @@ def test_async_password_intercepting_and_writing(
             "destination_ldap_server_users_dn_prefix": "uid=",
             "destination_ldap_server_users_dn_suffix": destination_server_users_bind_dn,
             "source_ldap_server_users_dn_prefix": "uid=",
-            "source_ldap_server_users_dn_suffix": source_server_users_bind_dn,
+            "source_ldap_server_users_dn_suffix": "," + source_server_users_bind_dn,
         },
     )
     password_intercept_thread.start()
@@ -259,7 +259,10 @@ def test_async_password_intercepting_and_writing(
     second_bind_on_source_successful = False
     second_bind_on_destination_succesful = False
 
+    # We can't dynamically introspect the current execution, therefore we must wait a few seconds before and after the reset, enough to let the intercepting thread verify and update the password
+    time.sleep(2)
     keycloak_reset_password_for_user(testuser, first_test_password, keycloak_realm)
+    time.sleep(2)
 
     # Test the bind on the source LDAP server
     conn = ldap3.Connection(
@@ -274,7 +277,10 @@ def test_async_password_intercepting_and_writing(
     if conn.bind():
         first_bind_on_destination_succesful = True
 
+    # We can't dynamically introspect the current execution, therefore we must wait a few seconds before and after the reset, enough to let the intercepting thread verify and update the password
+    time.sleep(2)
     keycloak_reset_password_for_user(testuser, second_test_password, keycloak_realm)
+    time.sleep(2)
 
     # Test the bind on the source LDAP server
     conn = ldap3.Connection(
@@ -335,10 +341,10 @@ def test_main(
     if not intercepting_thread.is_alive():
         raise Exception("Thread not running")
 
-    # TODO fix race condition between the interception thread fully starting vs launching a reset
-    time.sleep(1)
-
+    # We can't dynamically introspect the current execution, therefore we must wait a few seconds before and after the reset, enough to let the intercepting thread verify and update the password
+    time.sleep(2)
     keycloak_reset_password_for_user(testuser, first_test_password, keycloak_realm)
+    time.sleep(2)
 
     # Test the bind on the source LDAP server
     conn = ldap3.Connection(
@@ -353,7 +359,10 @@ def test_main(
     if conn.bind():
         first_bind_on_destination_succesful = True
 
+    # We can't dynamically introspect the current execution, therefore we must wait a few seconds before and after the reset, enough to let the intercepting thread verify and update the password
+    time.sleep(2)
     keycloak_reset_password_for_user(testuser, second_test_password, keycloak_realm)
+    time.sleep(2)
 
     # Test the bind on the source LDAP server
     conn = ldap3.Connection(
