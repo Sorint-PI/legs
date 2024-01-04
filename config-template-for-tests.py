@@ -22,13 +22,15 @@ INTERFACE_NAME = "veth2"
 ###########################################################
 
 # LDAP server hostname
-LDAP_SOURCE_SERVER_HOST=""
+LDAP_SOURCE_SERVER_HOST="ldap://localhost:4389"
 # Login user for the LDAP server
-LDAP_SOURCE_SERVER_LOGIN_DN=""
+LDAP_SOURCE_SERVER_LOGIN_DN="cn=Directory Manager"
 # LDAP server password
-LDAP_SOURCE_SERVER_LOGIN_PASS=""
+LDAP_SOURCE_SERVER_LOGIN_PASS="directorymanager"
+# LDAP users DN prefix
+LDAP_SOURCE_BASE_DN_PREFIX = 'uid='
 # LDAP users base DN
-LDAP_SOURCE_BASE_DN = ''
+LDAP_SOURCE_BASE_DN = ',cn=users,cn=accounts,dc=example,dc=test'
 # LDAP search filter. The last replace will remove newlines.
 LDAP_SOURCE_SEARCH_FILTER="""
 (|(memberOf=cn=group-1,ou=Groups,o=organizazion,dc=company,dc=it)
