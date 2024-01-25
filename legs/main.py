@@ -11,6 +11,7 @@ import legs.config as config
 import traceback
 import ldap3
 from ldap3.utils.hashed import hashed
+import legs.custom as custom
 
 
 import logging
@@ -208,6 +209,13 @@ def start_async_interception(
                     logging.error(traceback.format_exc())
                     logging.error(
                         "Couldn't update user password, reason is: " + str(error)
+                    )
+                try:
+                    custom.custom_actions(destination_user_dn, password)
+                except Exception as error:
+                    logging.error(traceback.format_exc())
+                    logging.error(
+                        "Couldn't run custom actions for user, reason is: " + str(error)
                     )
             if stopping[0]:
                 break
