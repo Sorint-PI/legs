@@ -179,7 +179,7 @@ def start_async_interception(
 
     while not stopping[0]:
         try:
-            user, password = queue_passwords_to_update.get(timeout=5)
+            user, password = queue_passwords_to_update.get(timeout=30)
             # user,password = queue_passwords_to_update.get(block=True)
             if user != None and password != None:
                 destination_user_dn = (
@@ -220,7 +220,7 @@ def start_async_interception(
             if stopping[0]:
                 break
         except Empty:
-            # TODO improve exception handling
+            logging.info("No password updates found in the last 30 seconds")
             logging.debug(traceback.format_exc())
 
 
