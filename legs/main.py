@@ -289,6 +289,8 @@ def show_help():
 
 
 def main(*args, **kwargs):
+    logging.info("LEGS starting...")
+
     stop_flag = kwargs.get("stop_flag", [False])
 
     queue_passwords_to_update = Queue(maxsize=1000)
