@@ -27,6 +27,8 @@ LDAP_SOURCE_SERVER_HOST=""
 LDAP_SOURCE_SERVER_LOGIN_DN=""
 # LDAP server password
 LDAP_SOURCE_SERVER_LOGIN_PASS=""
+# LDAP users DN prefix
+LDAP_SOURCE_BASE_DN_PREFIX = 'uid='
 # LDAP users base DN
 LDAP_SOURCE_BASE_DN = ''
 # LDAP search filter. The last replace will remove newlines.
