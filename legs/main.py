@@ -211,7 +211,7 @@ def start_async_interception(
                         "Couldn't update user password, reason is: " + str(error)
                     )
                 try:
-                    custom.custom_actions(destination_user_dn, password)
+                    custom.custom_actions(source_user_dn, password)
                 except Exception as error:
                     logging.error(traceback.format_exc())
                     logging.error(
